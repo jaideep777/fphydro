@@ -287,12 +287,14 @@ module md_phydro_photosynthesis
   end function QUADP
 
 
-  function calc_assim_rubisco_limited(gs, vcmax, par_photosynth) result(res)
-    real(kind=dbl8), intent(inout) :: gs
+  function calc_assim_rubisco_limited(gs_in, vcmax, par_photosynth) result(res)
+    real(kind=dbl8), intent(in) :: gs_in
     real(kind=dbl8), intent(in) :: vcmax
     type(ACi_type) :: res
     type(par_photosynth_type) :: par_photosynth
-    real(kind=dbl8) :: ca, d, A, B, C
+    real(kind=dbl8) :: ca, d, A, B, C, gs
+
+    gs = gs_in
 
     ca = par_photosynth%ca
     gs = gs * 1.0d6 / par_photosynth%patm
@@ -309,12 +311,14 @@ module md_phydro_photosynthesis
   end function calc_assim_rubisco_limited
 
 
-  function calc_assim_light_limited(gs, jmax, par_photosynth) result(res)
-    real(kind=dbl8), intent(inout) :: gs
+  function calc_assim_light_limited(gs_in, jmax, par_photosynth) result(res)
+    real(kind=dbl8), intent(in) :: gs_in
     real(kind=dbl8), intent(in) :: jmax
     type(ACi_type) :: res
     type(par_photosynth_type) :: par_photosynth
-    real(kind=dbl8) :: ca, d, phi0iabs, jj, jlim, A, B, C
+    real(kind=dbl8) :: ca, d, phi0iabs, jj, jlim, A, B, C, gs
+
+    gs = gs_in
 
     ca = par_photosynth%ca
     gs = gs * 1.0d6 / par_photosynth%patm
@@ -338,7 +342,7 @@ module md_phydro_photosynthesis
 
   function calc_assimilation_limiting(vcmax, jmax, gs, par_photosynth) result(Aout)
     real(kind=dbl8), intent(in) :: vcmax, jmax
-    real(kind=dbl8), intent(inout) :: gs
+    real(kind=dbl8), intent(in) :: gs
     type(ACi_type) :: Ac, Aj, Aout
     type(par_photosynth_type) :: par_photosynth
 

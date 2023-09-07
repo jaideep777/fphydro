@@ -45,6 +45,8 @@ module md_phydro_env
     this%patm = patm
     this%Rn = Rn
     this%v_wind = v_wind
+    this%gs_method = GS_IGF 
+    this%et_method = ET_DIFFUSION
     call calc_temp_dependencies(this)
   end subroutine create_par_env
 

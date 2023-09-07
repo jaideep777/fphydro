@@ -533,7 +533,10 @@ subroutine test_phydro
 
   implicit none
   real(kind = dbl8) :: psi_soil, tc, patm, vpd, kphio, co2, ppfd, fapar, rdark, elv 
+  real(kind = dbl8) :: dpsi1, grad1
   type(par_plant_type) :: par_plant
+  type(par_photosynth_type) :: par_photosynth
+  type(par_env_type) :: par_env
   type(par_cost_type) :: par_cost
   integer :: N
   integer :: i
@@ -610,6 +613,62 @@ subroutine test_phydro
     endif
    20  format(8f12.6)
   end do
+
+  !---------------------------------------------------------
+  !  Instantaneous version
+  !---------------------------------------------------------
+
+  tc = 20
+  vpd = 810.6
+  co2 = 400
+  ppfd = 1200
+  patm = calc_patm(0.0)
+  kphio = 0.087
+  fapar = 0.99
+  rdark = 0.02
+  psi_soil = -0.4137931
+
+  par_cost = par_cost_type(0.118514, 1.227068)
+  par_plant = par_plant_type(7.457324e-17, -1.039539, 1)
+
+  options%et_method = ET_DIFFUSION
+  options%gs_method = GS_IGF
+
+  call create_par_photosynth(par_photosynth, tc, patm, kphio, co2, ppfd, fapar, rdark, &
+                            tc, tc, FV_kumarathunge19, FR_heskel16, FB_atkin15)
+  call create_par_env(par_env, tc, patm, vpd, ppfd/2, 3.0d0)
+
+  do i = 0, 49, 1
+    dpsi1 = 2.0/49.0*i;
+    grad1 = calc_dP_ddpsi(dpsi1, 55.6279401d0, 117.0184518d0, psi_soil, par_plant, par_env, par_photosynth, par_cost);
+    print *, dpsi1, grad1
+  end do
+
+  open(unit=3, file='/home/jjoshi/codes/phydro/tests/test_data/psi_inst.tsv')
+  print *, "Soil moist response: Inst   GS_IGF   ET_DIFFUSION"
+  N = 20
+  do i = 0, N-1, 1
+    psi_soil = -6.0 + i*(6.0)/(N-1);
+    res = phydro_instantaneous_analytical(55.6279401d0, 117.0184518d0, tc, tc, ppfd, ppfd/2, vpd, co2, elv, &
+                                          fapar, kphio, psi_soil, rdark, 3.0d0, par_plant, par_cost, options)
+    read(3,*) psi_soil, res_ref%jmax, res_ref%dpsi, res_ref%gs, res_ref%a, res_ref%ci, res_ref%chi, res_ref%vcmax
+    write (*,30) psi_soil, res%jmax, res%dpsi, res%gs, res%a, res%ci, res%chi, res%vcmax
+    if (abs(res%jmax - res_ref%jmax) > 5e-4 .or. &
+        abs(res%jmax - res_ref%jmax) > 5e-4 .or. &
+        abs(res%dpsi - res_ref%dpsi) > 5e-4 .or. &
+        abs(res%gs - res_ref%gs) > 5e-4 .or. &
+        abs(res%a - res_ref%a) > 5e-4 .or. &
+        abs(res%ci - res_ref%ci) > 5e-4 .or. &
+        abs(res%chi - res_ref%chi) > 5e-4 .or. &
+        abs(res%vcmax - res_ref%vcmax) > 5e-4) then
+        write (*,31) psi_soil, res_ref%jmax, res_ref%dpsi, res_ref%gs, res_ref%a, res_ref%ci, res_ref%chi, res_ref%vcmax
+        31  format(8f12.6)
+      print *, "Phydro Inst Test failed at psis = ", psi_soil
+      err = .true.
+    endif
+   30  format(8f12.6)
+  end do
+
 
   print *, "--------------------"
   if (err) then 

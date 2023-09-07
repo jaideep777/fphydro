@@ -2,7 +2,7 @@ module md_phydro_solver
   use md_precision
   use md_phydro_photosynthesis
   use md_phydro_transpiration
-  
+
   implicit none
 
   type par_cost_type
@@ -237,7 +237,7 @@ module md_phydro_solver
     ca = par_photosynth%ca / par_photosynth%patm * 1.0d6
     br = par_photosynth%delta
     y = par_cost%gamma
-  
+
     Q = calc_sapflux(dpsi, psi_soil, par_plant, par_env)
     gs = calc_gs_from_Q(Q, psi_soil, par_plant, par_env)
     Assim = calc_assimilation_limiting(vcmax, jmax, gs, par_photosynth)
@@ -248,7 +248,11 @@ module md_phydro_solver
     gs1 = calc_gs_from_Q(Q1, psi_soil, par_plant, par_env)
     Assim1 = calc_assimilation_limiting(vcmax, jmax, gs1, par_photosynth)
     P1 = Assim1%a - y * (dpsi1) * (dpsi1)
-  
+
+    ! print *, "dpsi = ", dpsi
+    ! print *, "P ", dpsi, Q, gs, Assim%a
+    ! print *, "P1", dpsi, Q1, gs1, Assim1%a
+
     dP_ddpsi = (P1 - P) / 1.0d-6
   
   end function calc_dP_ddpsi
